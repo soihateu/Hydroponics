@@ -2,6 +2,7 @@ package com.example.capstoneapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -13,7 +14,7 @@ import com.google.android.material.slider.Slider;
 public class TemperatureSettings extends CustomizePage {
 
     // Settings for Temperature
-    CurrentSettings currentSettings = new CurrentSettings();
+    CurrentSettings currentSettings = CurrentSettings.getInstance();
     float temperature = currentSettings.getTempValues();
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +38,6 @@ public class TemperatureSettings extends CustomizePage {
         slider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
             public void onStartTrackingTouch(@NonNull Slider slider) {
-                System.out.println("The temp is currently: " + temperature);
 
             }
 

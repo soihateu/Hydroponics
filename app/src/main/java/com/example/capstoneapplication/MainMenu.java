@@ -2,10 +2,14 @@ package com.example.capstoneapplication;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.View;
 import android.widget.Button;
 
+import androidx.versionedparcelable.ParcelImpl;
+
 public class MainMenu extends MainActivity {
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,6 +41,8 @@ public class MainMenu extends MainActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainMenu.this, CustomizePage.class);
+/*                CurrentSettings currentSettings = (CurrentSettings) intent.getParcelableExtra("settingsObject");
+                intent.putExtra("settingsObject", (Parcelable) currentSettings);*/
                 startActivity(intent);
             }
         });

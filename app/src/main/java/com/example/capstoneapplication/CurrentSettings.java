@@ -2,12 +2,23 @@ package com.example.capstoneapplication;
 
 public class CurrentSettings {
 
-    private float tempValues;
+    private static float tempValues;
 
-    public float getTempValues() {
+    public static float getTempValues() {
         return tempValues;
     }
-    public void setTempValues(float temp) {
-        this.tempValues = temp;
+    public static void setTempValues(float temp) {
+        tempValues = temp;
     }
+
+    private static CurrentSettings instance;
+
+    public static CurrentSettings getInstance() {
+        if (instance == null)
+            instance = new CurrentSettings();
+        return instance;
+    }
+
+    private CurrentSettings() { }
+
 }
