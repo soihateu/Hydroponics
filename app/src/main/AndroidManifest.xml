@@ -16,10 +16,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainPage"/>
+        <activity android:name=".CustomizePage"/>
         <activity android:name=".TemperatureSettings"/>
         <activity android:name=".LightSettings"/>
         <activity android:name=".HumiditySettings"/>
+        <activity android:name=".PresetList"/>
+        <activity android:name=".EditPreset"/>
+        <activity android:name=".MainMenu"/>
 
 
     </application>

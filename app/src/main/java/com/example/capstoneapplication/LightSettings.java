@@ -10,22 +10,25 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.slider.Slider;
 
-public class LightSettings extends MainPage {
+public class LightSettings extends CustomizePage {
     private float lightValues = 0;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.light_settings);
 
+        // Button to go back to main page
         Button backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(LightSettings.this, MainPage.class);
+                Intent intent = new Intent(LightSettings.this, CustomizePage.class);
                 startActivity(intent);
             }
         });
 
+
+        // Slider for Humidity
         Slider slider = findViewById(R.id.slider);
         slider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
@@ -35,12 +38,12 @@ public class LightSettings extends MainPage {
 
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
-                float setHumidity = 0;
+                float setLight = 0;
 
-                setHumidity = getTempValues();
+                setLight = getLightValues();
 
                 TextView textView = findViewById(R.id.setTemp);
-                textView.setText(String.valueOf(setHumidity) + "%");
+                textView.setText(String.valueOf(setLight) + "%");
 
             }
         });
@@ -50,16 +53,16 @@ public class LightSettings extends MainPage {
 
             System.out.println("The Light is: " + lightValues);
 
-            setTempValues(lightValues);
+            setLightValues(lightValues);
         });
 
     }
 
-    public void setTempValues(float temp) {
+    // Setter and Getter for lightValues
+    public void setLightValues(float temp) {
         this.lightValues = temp;
     }
-
-    public float getTempValues() {
+    public float getLightValues() {
         return lightValues;
     }
 }

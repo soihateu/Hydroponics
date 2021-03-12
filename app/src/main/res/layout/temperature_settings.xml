@@ -72,7 +72,7 @@
         android:layout_width="346dp"
         android:layout_height="84dp"
         android:stepSize="2.0"
-        android:valueFrom="0.0"
+        android:valueFrom="10.0"
         android:valueTo="30.0"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -10,19 +10,25 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.slider.Slider;
 
-public class TemperatureSettings extends MainPage {
+public class TemperatureSettings extends CustomizePage {
 
-    private float tempValues = 0;
+    // Settings for Temperature
+    CurrentSettings currentSettings = new CurrentSettings();
+    float temperature = currentSettings.getTempValues();
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.temperature_settings);
+        TextView textView = findViewById(R.id.setTemp);
 
+        textView.setText(String.valueOf(temperature) + "°C");
+
+        // Button to go back to main page
         Button backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(TemperatureSettings.this, MainPage.class);
+                Intent intent = new Intent(TemperatureSettings.this, CustomizePage.class);
                 startActivity(intent);
             }
         });
@@ -31,35 +37,20 @@ public class TemperatureSettings extends MainPage {
         slider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
             @Override
             public void onStartTrackingTouch(@NonNull Slider slider) {
+                System.out.println("The temp is currently: " + temperature);
 
             }
 
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
-                float setTemperature = 0;
-
-                setTemperature = getTempValues();
-
-                TextView textView = findViewById(R.id.setTemp);
-                textView.setText(String.valueOf(setTemperature) + "°C");
-
+                currentSettings.setTempValues(slider.getValue());
+                textView.setText(String.valueOf(temperature) + "°C");
             }
         });
 
         slider.addOnChangeListener((slider1, value, fromUser) -> {
-            tempValues = slider.getValue();
-            System.out.println("The temp is: " + tempValues);
-
-            setTempValues(tempValues);
+            temperature = slider.getValue();
         });
 
-    }
-
-    public void setTempValues(float temp) {
-        this.tempValues = temp;
-    }
-
-    public float getTempValues() {
-        return tempValues;
     }
 }

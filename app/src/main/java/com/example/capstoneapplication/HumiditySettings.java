@@ -10,18 +10,20 @@ import androidx.annotation.NonNull;
 
 import com.google.android.material.slider.Slider;
 
-public class HumiditySettings extends MainPage {
+public class HumiditySettings extends CustomizePage {
+
     private float humidityValues = 0;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.humidity_settings);
 
+        // Button to go back to main page
         Button backButton = findViewById(R.id.backButton);
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(HumiditySettings.this, MainPage.class);
+                Intent intent = new Intent(HumiditySettings.this, CustomizePage.class);
                 startActivity(intent);
             }
         });
@@ -35,12 +37,12 @@ public class HumiditySettings extends MainPage {
 
             @Override
             public void onStopTrackingTouch(@NonNull Slider slider) {
-                float setHumidity = 0;
+                float saveHumidity = 0;
 
-                setHumidity = getTempValues();
+                saveHumidity = getTempValues();
 
                 TextView textView = findViewById(R.id.setTemp);
-                textView.setText(String.valueOf(setHumidity) + "%");
+                textView.setText(String.valueOf(saveHumidity) + "%");
 
             }
         });
