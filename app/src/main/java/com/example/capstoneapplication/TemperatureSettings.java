@@ -45,6 +45,7 @@ public class TemperatureSettings extends CustomizePage {
             public void onStopTrackingTouch(@NonNull Slider slider) {
                 currentSettings.setTempValues(slider.getValue());
                 textView.setText(String.valueOf(temperature) + "°C");
+                System.out.println("Current temperature is now set to: " + currentSettings.getTempValues());
             }
         });
 
