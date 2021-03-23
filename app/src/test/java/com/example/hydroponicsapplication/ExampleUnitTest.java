@@ -1,4 +1,4 @@
-package com.example.capstoneapplication;
+package com.example.hydroponicsapplication;
 
 import org.junit.Test;
 
