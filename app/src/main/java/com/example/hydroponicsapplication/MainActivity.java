@@ -7,6 +7,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
@@ -16,7 +17,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -29,17 +29,9 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
     private static final String HM10_MAC_ADDRESS = "64:69:4E:8A:07:67";
 
-    private static final UUID TEMPERATURE_SERVICE = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
-    private static final UUID HUMIDITY_SERVICE = UUID.fromString("f000aa20-0451-4000-b000-000000000000");
-    private static final UUID LIGHTING_SERVICE = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
-    private static final UUID TEMPERATURE_SENSOR = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
-    private static final UUID HUMIDITY_SENSOR = UUID.fromString("f000aa22-0451-4000-b000-000000000000");
-    private static final UUID LIGHTING_SENSOR = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
-    private static final UUID TEMPERATURE_DATA = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
-    private static final UUID HUMIDITY_DATA = UUID.fromString("f000aa21-0451-4000-b000-000000000000");
-    private static final UUID LIGHTING_DATA = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
-
-    private static final UUID CONFIG_DESCRIPTOR = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
+    private static final UUID HM10_SERVICE = UUID.fromString("0000ffe0-0000-1000-8000-00805f9b34fb");
+    private static final UUID HM10_CHARACTERISTIC = UUID.fromString("0000ffe1-0000-1000-8000-00805f9b34fb");
+    private static final UUID HM10_CHARACTERISTIC_CONFIG = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
     private static final String ERROR_BLUETOOTH_LE_NOT_SUPPORTED = "ERROR: Bluetooth LE is not supported on this device.";
     private static final String ERROR_BLUETOOTH_CONNECTION_FAILED = "ERROR: Failed to connect to HM10 device.";
@@ -58,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView setHumidity;
     private TextView setLighting;
     private Button connectButton;
+
+    private boolean sensorsInitialized = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,9 +123,10 @@ public class MainActivity extends AppCompatActivity {
     // Connect to bluetooth device
     private void connect() {
         BluetoothDevice btDevice = btAdapter.getRemoteDevice(HM10_MAC_ADDRESS);
+
         if (btDevice != null) {
             btGatt = btDevice.connectGatt(this, false, btGattCallback, BluetoothDevice.TRANSPORT_LE);
-            handler.sendMessage(Message.obtain(null, MSG_LOADING, "Connecting to " + btDevice.getName() + "..."));
+            handler.sendMessage(Message.obtain(null, MSG_POPUP, "Connecting to " + btDevice.getName() + "..."));
             disableConnectButton();
         }
         else {
@@ -141,13 +136,6 @@ public class MainActivity extends AppCompatActivity {
 
     // Allow the button to be clickable once the application has connected to the bluetooth module
     private void enableConnectButton() {
-        // Reset connection details
-        btAdapter = null;
-        if (btGatt != null) {
-            btGatt.disconnect();
-            btGatt = null;
-        }
-        // Enable button
         connectButton.setText("Connect");
         connectButton.setEnabled(true);
     }
@@ -158,113 +146,60 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void resetApplication() {
+        // Reset text
         currentTemperture.setText("-------");
         currentHumidity.setText("-------");
         currentLighting.setText("-------");
         setTemperature.setText("-------");
         setHumidity.setText("-------");
         setLighting.setText("-------");
+
+        // Reset connection details
+        if (btGatt != null) {
+            btGatt.disconnect();
+            btGatt = null;
+        }
+
         enableConnectButton();
     }
 
     public final BluetoothGattCallback btGattCallback = new BluetoothGattCallback() {
-        private int state = 0;
-
-        private void reset() {
-            state = 0;
-        }
-
-        private void next() {
-            state++;
-        }
-
-        // Send an enable command to each sensor by writing a configuration characteristic
-        private void enableNextSensor(BluetoothGatt gatt) {
-            BluetoothGattCharacteristic characteristic = null;
-
-            switch (state) {
-                case 0:
-                    // Enable temperature sensor
-                    characteristic = gatt.getService(TEMPERATURE_SERVICE).getCharacteristic(TEMPERATURE_SENSOR);
-                    characteristic.setValue(new byte[] {0x02}); // specific to hm10 device
-                    break;
-                case 1:
-                    // Enable humidity sensor
-                    characteristic = gatt.getService(HUMIDITY_SERVICE).getCharacteristic(HUMIDITY_SENSOR);
-                    characteristic.setValue(new byte[] {0x01}); // specific to hm10 device
-                    break;
-                case 2:
-                    // Enable lighting sensor
-                    characteristic = gatt.getService(LIGHTING_SERVICE).getCharacteristic(LIGHTING_SENSOR);
-                    characteristic.setValue(new byte[] {0x01}); // specific to hm10 device
-                    break;
-                default:
-                    // All sensors are enabled
-                    handler.sendEmptyMessage(MSG_LOAD_COMPLETE);
-                    break;
-            }
-
-            if (characteristic != null) {
-                gatt.writeCharacteristic(characteristic);
-            }
-        }
-
-        // Read sensor data
-        private void readNextSensor(BluetoothGatt gatt) {
-            BluetoothGattCharacteristic characteristic = null;
-
-            switch (state) {
-                case 0:
-                    // Reading temperature sensor data
-                    characteristic = gatt.getService(TEMPERATURE_SERVICE).getCharacteristic(TEMPERATURE_DATA);
-                    break;
-                case 1:
-                    // Reading humidity sensor data
-                    characteristic = gatt.getService(HUMIDITY_SERVICE).getCharacteristic(HUMIDITY_DATA);
-                    break;
-                case 2:
-                    // Reading lighting sensor data
-                    characteristic = gatt.getService(LIGHTING_SERVICE).getCharacteristic(LIGHTING_DATA);
-                    break;
-                default:
-                    handler.sendEmptyMessage(MSG_LOAD_COMPLETE);
-                    break;
-            }
-
-            if (characteristic != null) {
-                gatt.readCharacteristic(characteristic);
-            }
-        }
-
         // Notify us for any updates/changes on the sensors
-        private void setNotifyNextSensor(BluetoothGatt gatt) {
-            BluetoothGattCharacteristic characteristic = null;
+        private void subscribeToSensorNotifications(BluetoothGatt gatt) {
+            BluetoothGattService btService = gatt.getService(HM10_SERVICE);
 
-            switch (state) {
-                case 0:
-                    // Reading temperature sensor data
-                    characteristic = gatt.getService(TEMPERATURE_SERVICE).getCharacteristic(TEMPERATURE_DATA);
-                    break;
-                case 1:
-                    // Reading humidity sensor data
-                    characteristic = gatt.getService(HUMIDITY_SERVICE).getCharacteristic(HUMIDITY_DATA);
-                    break;
-                case 2:
-                    // Reading lighting sensor data
-                    characteristic = gatt.getService(LIGHTING_SERVICE).getCharacteristic(LIGHTING_DATA);
-                    break;
-                default:
-                    handler.sendEmptyMessage(MSG_LOAD_COMPLETE);
-                    break;
+            if (btService != null) {
+                BluetoothGattCharacteristic characteristic = btService.getCharacteristic(HM10_CHARACTERISTIC);
+
+                if (characteristic != null) {
+                    // Enable local notifications
+                    if (!gatt.setCharacteristicNotification(characteristic, true)) {
+                        handler.sendMessage(Message.obtain(null, MSG_RESET, "Error setting characteristic notifications."));
+                    }
+
+                    // Enable remote notifications
+                    BluetoothGattDescriptor descriptor = characteristic.getDescriptor(HM10_CHARACTERISTIC_CONFIG);
+
+                    if (descriptor != null) {
+                        if (descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)) {
+                            if (!gatt.writeDescriptor(descriptor)) {
+                                handler.sendMessage(Message.obtain(null, MSG_RESET, "Error writing to descriptor."));
+                            }
+                        }
+                        else {
+                            handler.sendMessage(Message.obtain(null, MSG_RESET, "Error setting descriptor value."));
+                        }
+                    }
+                    else {
+                        handler.sendMessage(Message.obtain(null, MSG_RESET, "Error obtaining descriptor."));
+                    }
+                }
+                else {
+                    handler.sendMessage(Message.obtain(null, MSG_RESET, "Error obtaining characteristic of service."));
+                }
             }
-
-            if (characteristic != null) {
-                // Enable local notifications
-                gatt.setCharacteristicNotification(characteristic, true);
-                // Enable remote notifications
-                BluetoothGattDescriptor descriptor = characteristic.getDescriptor(CONFIG_DESCRIPTOR);
-                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-                gatt.writeDescriptor(descriptor);
+            else {
+                handler.sendMessage(Message.obtain(null, MSG_RESET, "Error obtaining service."));
             }
         }
 
@@ -272,8 +207,8 @@ public class MainActivity extends AppCompatActivity {
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
                 // Connection was successful
+                handler.sendMessage(Message.obtain(null, MSG_POPUP, "Discovering services..."));
                 gatt.discoverServices();
-                handler.sendMessage(Message.obtain(null, MSG_LOADING, "Discovering services..."));
             }
             else if (status != BluetoothGatt.GATT_SUCCESS) {
                 // Failed to connect
@@ -283,120 +218,126 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-            handler.sendMessage(Message.obtain(null, MSG_LOADING, "Enabling sensors..."));
-            reset();
-            enableNextSensor(gatt);
-        }
+            handler.sendMessage(Message.obtain(null, MSG_POPUP, "Reading sensors..."));
 
-        @Override
-        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            // Pass data read to Activity to update text fields
-            if (TEMPERATURE_DATA.equals(characteristic.getUuid())) {
-                handler.sendMessage(Message.obtain(null, MSG_TEMPERATURE, characteristic));
+            // Read and update current values on display
+            BluetoothGattService btService = gatt.getService(HM10_SERVICE);
+
+            if (btService != null) {
+                BluetoothGattCharacteristic characteristic = btService.getCharacteristic(HM10_CHARACTERISTIC);
+                if (characteristic != null) {
+                    // TODO: test write, remove later
+                    if (!characteristic.setValue("50,40,70")) {
+                        handler.sendMessage(Message.obtain(null, MSG_RESET, "Failed to write test value to characteristic."));
+                    }
+
+                    handler.sendMessage(Message.obtain(null, MSG_UPDATE_VALUES, characteristic));
+                }
+                else {
+                    handler.sendMessage(Message.obtain(null, MSG_RESET, "Failed to obtain characteristic of service."));
+                    return;
+                }
             }
-            if (HUMIDITY_DATA.equals(characteristic.getUuid())) {
-                handler.sendMessage(Message.obtain(null, MSG_HUMIDITY, characteristic));
-            }
-            if (LIGHTING_DATA.equals(characteristic.getUuid())) {
-                handler.sendMessage(Message.obtain(null, MSG_LIGHTING, characteristic));
+            else {
+                handler.sendMessage(Message.obtain(null, MSG_RESET, "Failed to obtain service."));
+                return;
             }
 
-            setNotifyNextSensor(gatt);
-        }
-
-        @Override
-        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            readNextSensor(gatt);
+            subscribeToSensorNotifications(gatt);
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             // Will handle all future updates on sensor value changes
             // Pass data read to Activity to update text fields
-            if (TEMPERATURE_DATA.equals(characteristic.getUuid())) {
-                handler.sendMessage(Message.obtain(null, MSG_TEMPERATURE, characteristic));
+            if (HM10_CHARACTERISTIC.equals(characteristic.getUuid())) {
+                handler.sendMessage(Message.obtain(null, MSG_UPDATE_VALUES, characteristic));
             }
-            if (HUMIDITY_DATA.equals(characteristic.getUuid())) {
-                handler.sendMessage(Message.obtain(null, MSG_HUMIDITY, characteristic));
-            }
-            if (LIGHTING_DATA.equals(characteristic.getUuid())) {
-                handler.sendMessage(Message.obtain(null, MSG_LIGHTING, characteristic));
-            }
-        }
-
-        @Override
-        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
-            next();
-            enableNextSensor(gatt);
         }
     };
 
-    private static final int MSG_TEMPERATURE = 101;
-    private static final int MSG_HUMIDITY = 102;
-    private static final int MSG_LIGHTING = 103;
-    private static final int MSG_RESET = 201;
-    private static final int MSG_LOADING = 202;
-    private static final int MSG_LOAD_COMPLETE = 203;
+    private static final int MSG_UPDATE_VALUES = 101;
+    private static final int MSG_POPUP = 102;
+    private static final int MSG_CLOSE_POPUP = 103;
+    private static final int MSG_RESET = 104;
 
     private Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
-            BluetoothGattCharacteristic characteristic;
             switch (msg.what) {
-                case MSG_TEMPERATURE:
-                    characteristic = (BluetoothGattCharacteristic) msg.obj;
+                case MSG_UPDATE_VALUES:
+                    BluetoothGattCharacteristic characteristic = (BluetoothGattCharacteristic) msg.obj;
+
                     if (characteristic.getValue() != null) {
-                        updateTemperatureValues(characteristic);
+                        updateValues(characteristic);
                     }
                     else {
-                        Log.w(SENSOR_TAG, "Error obtaining temperature value.");
-                    }
-                    break;
-                case MSG_HUMIDITY:
-                    characteristic = (BluetoothGattCharacteristic) msg.obj;
-                    if (characteristic.getValue() != null) {
-                        updateHumidityValues(characteristic);
-                    }
-                    else {
-                        Log.w(SENSOR_TAG, "Error obtaining humidity value.");
-                    }
-                    break;
-                case MSG_LIGHTING:
-                    characteristic = (BluetoothGattCharacteristic) msg.obj;
-                    if (characteristic.getValue() != null) {
-                        updateLightingValues(characteristic);
-                    }
-                    else {
-                        Log.w(SENSOR_TAG, "Error obtaining lighting value.");
+                        handler.sendMessage(Message.obtain(null, MSG_RESET, "Characteristic's value is null."));
                     }
                     break;
                 case MSG_RESET:
+                    progressDialog.hide();
+                    Toast.makeText(MainActivity.this, (String) msg.obj, Toast.LENGTH_SHORT).show();
                     resetApplication();
                     break;
-                case MSG_LOADING:
+                case MSG_POPUP:
                     progressDialog.setMessage((String) msg.obj);
-                    if (!progressDialog.isShowing())
+
+                    if (!progressDialog.isShowing()) {
                         progressDialog.show();
+                    }
                     break;
-                case MSG_LOAD_COMPLETE:
+                case MSG_CLOSE_POPUP:
                     progressDialog.hide();
+                    break;
+                default:
                     break;
             }
         }
     };
 
-    private void updateTemperatureValues(BluetoothGattCharacteristic characteristic) {
-        // TODO: convert sensor data into actual temperature celsius value
-        currentTemperture.setText("25°"); // placeholder
-    }
+    private void updateValues(BluetoothGattCharacteristic characteristic) {
+        // Parse values from characteristic then update each value's TextView
+        String values = characteristic.getStringValue(0);
 
-    private void updateHumidityValues(BluetoothGattCharacteristic characteristic) {
-        // TODO: convert sensor data into actual humidity celsius value
-        currentHumidity.setText("80%"); // placeholder
-    }
+        int delimiterIndex = values.indexOf(",");
 
-    private void updateLightingValues(BluetoothGattCharacteristic characteristic) {
-        // TODO: convert sensor data into actual lighting celsius value
-        currentLighting.setText("50%"); // placeholder
+        // Get temperature value
+        if (delimiterIndex != -1) {
+            String temperatureValue = values.substring(0, delimiterIndex);
+            values = values.substring(delimiterIndex+1);
+            currentTemperture.setText(temperatureValue.concat("°"));
+        }
+        else {
+            Log.w(SENSOR_TAG, "Error obtaining rest of the values.");
+            return;
+        }
+
+        delimiterIndex = values.indexOf(",");
+
+        // Get humidity value
+        if (delimiterIndex != 1) {
+            String humidityValue = values.substring(0, delimiterIndex);
+            values = values.substring(delimiterIndex+1);
+            currentHumidity.setText(humidityValue.concat("%"));
+        }
+        else {
+            Log.w(SENSOR_TAG, "Error obtaining rest of the values.");
+            return;
+        }
+
+        // Get lighting value
+        if (values.length() > 0) {
+            currentLighting.setText(values.concat("%"));
+        }
+        else {
+            Log.w(SENSOR_TAG, "Error obtaining lighting value.");
+            return;
+        }
+
+        if (!sensorsInitialized) {
+            sensorsInitialized = true;
+            handler.sendEmptyMessage(MSG_CLOSE_POPUP);
+        }
     }
 }
