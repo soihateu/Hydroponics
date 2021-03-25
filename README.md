@@ -2,9 +2,9 @@
 
 # Hydroponics Mobile Application
 
-NOTE: Bluetooth BLE will not work on android studio emulators. Download android mirroring applications, such as Vysor, and run on phone.
+NOTE: Bluetooth BLE is not supported on android studio emulators. Download android mirroring applications, such as Vysor, and run on phone.
 
-### Arduino Code
+### Arduino Setup
 
 - Uses AltSoftSerial library; make sure to use the correct ports specifically for AltSoftSerial.
 
