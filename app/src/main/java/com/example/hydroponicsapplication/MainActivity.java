@@ -11,11 +11,13 @@ import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -43,40 +45,114 @@ public class MainActivity extends AppCompatActivity {
 
     private ProgressDialog progressDialog;
 
-    private TextView currentTemperture;
+    private TextView currentTemperature;
     private TextView currentHumidity;
     private TextView currentLighting;
-    private TextView setTemperature;
-    private TextView setHumidity;
-    private TextView setLighting;
+    private TextView setTemperatureDisplay;
+    private TextView setHumidityDisplay;
+    private TextView setLightingDisplay;
     private Button connectButton;
+    private Button addTempButton;
+    private Button minusTempButton;
+    private Button addHumidityButton;
+    private Button minusHumidityButton;
+    private Button addLightingButton;
+    private Button minusLightingButton;
 
+    private int setTemperature = 0;
+    private int setHumidity = 0;
+    private int setLighting = 0;
     private boolean sensorsInitialized = false;
 
+    SharedPreferences settings;
+    SharedPreferences.Editor editor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         // Get all text views
-        currentTemperture = findViewById(R.id.currTemp);
+        connectButton = findViewById(R.id.connect);
+        currentTemperature = findViewById(R.id.currTemp);
         currentHumidity = findViewById(R.id.currHumidity);
         currentLighting = findViewById(R.id.currLighting);
-        setTemperature = findViewById(R.id.setTemp);
-        setHumidity = findViewById(R.id.setHumidity);
-        setLighting = findViewById(R.id.setLighting);
-        connectButton = findViewById(R.id.connect);
+        addTempButton = findViewById(R.id.addTemp);
+        minusTempButton = findViewById(R.id.decreaseTemp);
+        addHumidityButton = findViewById(R.id.addHumidity);
+        minusHumidityButton = findViewById(R.id.decreaseHumidity);
+        addLightingButton = findViewById(R.id.addLighting);
+        minusLightingButton = findViewById(R.id.decreaseLighting);
+        setTemperatureDisplay = findViewById(R.id.setTemp);
+        setHumidityDisplay = findViewById(R.id.setHumidity);
+        setLightingDisplay = findViewById(R.id.setLighting);
 
         // Setup progress dialog; shows as loading dialog while connecting to device
         progressDialog = new ProgressDialog(this);
         progressDialog.setIndeterminate(true);
         progressDialog.setCancelable(false);
 
-        // Setup connect button
+        // Preferences to hold set temp, set humidity, and set lighting values
+        getApplicationContext().getSharedPreferences("values", MODE_MULTI_PROCESS);
+
+        // Setup buttons
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 connect();
+            }
+        });
+        addTempButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (sensorsInitialized) {
+                    setTemperatureDisplay.setText(String.valueOf(++setTemperature));
+                    savePreferences();
+                }
+            }
+        });
+        minusTempButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (sensorsInitialized && setTemperature > 0) {
+                    setTemperatureDisplay.setText(String.valueOf(--setTemperature));
+                    savePreferences();
+                }
+            }
+        });
+        addHumidityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (sensorsInitialized) {
+                    setHumidityDisplay.setText(String.valueOf(++setHumidity));
+                    savePreferences();
+                }
+            }
+        });
+        minusHumidityButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (sensorsInitialized && setHumidity > 0) {
+                    setHumidityDisplay.setText(String.valueOf(--setHumidity));
+                    savePreferences();
+                }
+            }
+        });
+        addLightingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (sensorsInitialized) {
+                    setLightingDisplay.setText(String.valueOf(++setLighting));
+                    savePreferences();
+                }
+            }
+        });
+        minusLightingButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (sensorsInitialized && setLighting > 0) {
+                    setLightingDisplay.setText(String.valueOf(--setLighting));
+                    savePreferences();
+                }
             }
         });
 
@@ -147,12 +223,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void resetApplication() {
         // Reset text
-        currentTemperture.setText("-------");
+        currentTemperature.setText("-------");
         currentHumidity.setText("-------");
         currentLighting.setText("-------");
-        setTemperature.setText("-------");
-        setHumidity.setText("-------");
-        setLighting.setText("-------");
+        setTemperatureDisplay.setText("-------");
+        setHumidityDisplay.setText("-------");
+        setLightingDisplay.setText("-------");
 
         // Reset connection details
         if (btGatt != null) {
@@ -220,14 +296,24 @@ public class MainActivity extends AppCompatActivity {
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             handler.sendMessage(Message.obtain(null, MSG_POPUP, "Reading sensors..."));
 
+            // TODO: Cannot call method here. Need to use handler
+            // Loads the characteristic with 0,0,0 + preferences
+            // String initialLoadValues = loadPreferences();
+
             // Read and update current values on display
             BluetoothGattService btService = gatt.getService(HM10_SERVICE);
 
             if (btService != null) {
                 BluetoothGattCharacteristic characteristic = btService.getCharacteristic(HM10_CHARACTERISTIC);
+
                 if (characteristic != null) {
-                    // TODO: test write, remove later
-                    if (!characteristic.setValue("50,40,70")) {
+                    // Initially set values to 0 by default
+                    if (!characteristic.setValue("0,0,0")) { // TODO: Replace this with the
+                        handler.sendMessage(Message.obtain(null, MSG_RESET, "Failed to write test value to characteristic."));
+                    }
+
+                    // Write to remote characteristic
+                    if (!gatt.writeCharacteristic(characteristic)) {
                         handler.sendMessage(Message.obtain(null, MSG_RESET, "Failed to write test value to characteristic."));
                     }
 
@@ -242,8 +328,6 @@ public class MainActivity extends AppCompatActivity {
                 handler.sendMessage(Message.obtain(null, MSG_RESET, "Failed to obtain service."));
                 return;
             }
-
-            subscribeToSensorNotifications(gatt);
         }
 
         @Override
@@ -253,6 +337,11 @@ public class MainActivity extends AppCompatActivity {
             if (HM10_CHARACTERISTIC.equals(characteristic.getUuid())) {
                 handler.sendMessage(Message.obtain(null, MSG_UPDATE_VALUES, characteristic));
             }
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            subscribeToSensorNotifications(gatt);
         }
     };
 
@@ -296,6 +385,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    // TODO: Modularize the code. Have a function to parse and store in array.
     private void updateValues(BluetoothGattCharacteristic characteristic) {
         // Parse values from characteristic then update each value's TextView
         String values = characteristic.getStringValue(0);
@@ -306,7 +396,7 @@ public class MainActivity extends AppCompatActivity {
         if (delimiterIndex != -1) {
             String temperatureValue = values.substring(0, delimiterIndex);
             values = values.substring(delimiterIndex+1);
-            currentTemperture.setText(temperatureValue.concat("°"));
+            currentTemperature.setText(temperatureValue.concat("°"));
         }
         else {
             Log.w(SENSOR_TAG, "Error obtaining rest of the values.");
@@ -316,7 +406,7 @@ public class MainActivity extends AppCompatActivity {
         delimiterIndex = values.indexOf(",");
 
         // Get humidity value
-        if (delimiterIndex != 1) {
+        if (delimiterIndex != -1) {
             String humidityValue = values.substring(0, delimiterIndex);
             values = values.substring(delimiterIndex+1);
             currentHumidity.setText(humidityValue.concat("%"));
@@ -340,4 +430,24 @@ public class MainActivity extends AppCompatActivity {
             handler.sendEmptyMessage(MSG_CLOSE_POPUP);
         }
     }
+//
+//    private static int[] parseCharacteristic() {
+//
+//    }
+//
+//
+    private void savePreferences() {
+
+    }
+//
+//    private String loadPreferences() {
+//        String initialValues = "0,0,0";
+//        String preferences = settings.getString("values", ",0,0,0"); // TODO: this can be ",0,0,0"
+//        System.out.println(preferences);
+//
+//        //initialValues += preferences;
+//        System.out.println("Initial characteristic value is :" + initialValues);
+//
+//        return initialValues;
+//    }
 }

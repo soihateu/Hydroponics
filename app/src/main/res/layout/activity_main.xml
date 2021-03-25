@@ -61,7 +61,7 @@
         app:layout_constraintTop_toBottomOf="@+id/currTemp" />
 
     <Button
-        android:id="@+id/increaseSetTemp"
+        android:id="@+id/addTemp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="△"
@@ -94,7 +94,7 @@
         app:layout_constraintHorizontal_bias="0.6" />
 
     <Button
-        android:id="@+id/decreaseSetTemp"
+        android:id="@+id/decreaseTemp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="▽"
@@ -128,7 +128,7 @@
         app:layout_constraintTop_toBottomOf="@+id/currHumidity" />
 
     <Button
-        android:id="@+id/increaseSetHumidity"
+        android:id="@+id/addHumidity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="△"
@@ -161,7 +161,7 @@
         app:layout_constraintHorizontal_bias="0.6" />
 
     <Button
-        android:id="@+id/decreaseSetHumidity"
+        android:id="@+id/decreaseHumidity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="▽"
@@ -195,7 +195,7 @@
         app:layout_constraintTop_toBottomOf="@+id/currLighting" />
 
     <Button
-        android:id="@+id/increaseSetLighting"
+        android:id="@+id/addLighting"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="△"
@@ -228,7 +228,7 @@
         app:layout_constraintHorizontal_bias="0.6" />
 
     <Button
-        android:id="@+id/decreaseSetLighting"
+        android:id="@+id/decreaseLighting"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="▽"
