@@ -194,6 +194,41 @@
         app:layout_constraintRight_toRightOf="@+id/currLighting"
         app:layout_constraintTop_toBottomOf="@+id/currLighting" />
 
+    <TextView
+        android:id="@+id/currUV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="----"
+        android:textSize="25dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toRightOf="@id/currIR"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/currLighting"
+        app:layout_constraintVertical_bias="0.25"
+        app:layout_constraintHorizontal_bias="0.1" />
+
+    <TextView
+        android:id="@+id/currIR"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="----"
+        android:textSize="25dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/currLighting"
+        app:layout_constraintVertical_bias="0.25"
+        app:layout_constraintHorizontal_bias="0.24" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="IR"
+        android:textSize="12dp"
+        app:layout_constraintLeft_toLeftOf="@id/currIR"
+        app:layout_constraintRight_toRightOf="@id/currIR"
+        app:layout_constraintTop_toBottomOf="@id/currIR" />
+
     <Button
         android:id="@+id/addLighting"
         android:layout_width="wrap_content"
@@ -205,6 +240,15 @@
         app:layout_constraintBottom_toTopOf="@+id/setLighting"
         app:layout_constraintLeft_toRightOf="@+id/currLighting"
         app:layout_constraintRight_toRightOf="parent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="UV"
+        android:textSize="11dp"
+        app:layout_constraintLeft_toLeftOf="@id/currUV"
+        app:layout_constraintRight_toRightOf="@id/currUV"
+        app:layout_constraintTop_toBottomOf="@id/currUV" />
 
     <TextView
         android:layout_width="wrap_content"
