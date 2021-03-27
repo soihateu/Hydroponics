@@ -14,7 +14,8 @@ NOTE: Bluetooth BLE is not supported on android studio emulators. Enable USB deb
 
 - Set serial monitor to "No Line Ending"
 
-- Format of characteristic: ("temperature, humidity, lighting (visible light), IR, UV, tempThreshold, HumidThreshold, LightThreshold")
+- Format of GATT characteristic: 
+      ("temperature, humidity, lighting (visible light), IR, UV, tempThreshold, HumidThreshold, LightThreshold")
 
   ![Arduino HM-10 BLE Module Connection Circuit Diagram](https://circuitdigest.com/sites/default/files/circuitdiagram_mic/Circuit-Diagram-for-HM-10-BLE-Module-with-Arduino-to-Control-an-LED-using-Android-App_0.png)
 
