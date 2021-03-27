@@ -69,9 +69,6 @@ public class MainActivity extends AppCompatActivity {
     private Button addLightingButton;
     private Button minusLightingButton;
 
-    private int setTemperatureValue = 0;
-    private int setHumidityValue = 0;
-    private int setLightingValue = 0;
     private boolean sensorsInitialized = false;
 
     @Override
@@ -93,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
         setTemperatureDisplay = findViewById(R.id.setTemp);
         setHumidityDisplay = findViewById(R.id.setHumidity);
         setLightingDisplay = findViewById(R.id.setLighting);
-        currIR = findViewById(R.id.currIR);
-        currUV = findViewById(R.id.currUV);
+        //currIR = findViewById(R.id.currIR);
+        //currUV = findViewById(R.id.currUV);
 
         // Setup progress dialog; shows as loading dialog while connecting to device
         progressDialog = new ProgressDialog(this);
@@ -111,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         addTempButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sensorsInitialized) {
+                if (sensorsInitialized && getSetValue(TEMPERATURE) < 30) {
                     updateSetValues(TEMPERATURE, true);
                 }
             }
@@ -119,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         minusTempButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sensorsInitialized && setTemperatureValue > 0) {
+                if (sensorsInitialized && getSetValue(TEMPERATURE) > 15) {
                     updateSetValues(TEMPERATURE, false);
                 }
             }
@@ -127,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         addHumidityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sensorsInitialized) {
+                if (sensorsInitialized && getSetValue(HUMIDITY) < 100) {
                     updateSetValues(HUMIDITY, true);
                 }
             }
@@ -135,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         minusHumidityButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sensorsInitialized && setHumidityValue > 0) {
+                if (sensorsInitialized && getSetValue(HUMIDITY) > 0) {
                     updateSetValues(HUMIDITY, false);
                 }
             }
@@ -143,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
         addLightingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sensorsInitialized) {
+                if (sensorsInitialized && getSetValue(LIGHTING) < 100) {
                     updateSetValues(LIGHTING, true);
                 }
             }
@@ -151,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
         minusLightingButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (sensorsInitialized && setLightingValue > 0) {
+                if (sensorsInitialized && getSetValue(LIGHTING) > 0) {
                     updateSetValues(LIGHTING, false);
                 }
             }
@@ -333,6 +330,7 @@ public class MainActivity extends AppCompatActivity {
                     BluetoothGattCharacteristic characteristic = (BluetoothGattCharacteristic) msg.obj;
 
                     if (characteristic.getValue() != null) {
+                        System.out.println("Get Value is: " + characteristic.getValue());
                         updateValues(characteristic);
                     }
                     else {
@@ -375,25 +373,25 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 1:
                     temp = tokenSettings[i].concat("%");
-                    currentHumidity.setText(setSpannableView(temp));
+                    currentHumidity.setText(setSpannableView(temp, true));
                     break;
                 case 2:
                     temp = tokenSettings[i].concat("%");
-                    currentLighting.setText(setSpannableView(temp));
+                    currentLighting.setText(setSpannableView(temp, true));
                     break;
+//                case 3:
+//                    currIR.setText(tokenSettings[i]);
+//                    break;
+//                case 4:
+//                    currUV.setText(tokenSettings[i]);
+//                    break;
                 case 3:
-                    currIR.setText(tokenSettings[i]);
-                    break;
-                case 4:
-                    currUV.setText(tokenSettings[i]);
-                    break;
-                case 5:
                     setTemperatureDisplay.setText(tokenSettings[i].concat(""));
                     break;
-                case 6:
+                case 4:
                     setHumidityDisplay.setText(tokenSettings[i].concat(""));
                     break;
-                case 7:
+                case 5:
                     setLightingDisplay.setText(tokenSettings[i].concat(""));
                     break;
                 default:
@@ -410,9 +408,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Used to create a textView with different textSizes
-    private Spannable setSpannableView(String temp) {
+    private Spannable setSpannableView(String temp, boolean isSpannable) {
         Spannable spannable = new SpannableString(temp);
-        spannable.setSpan(new RelativeSizeSpan(.5f), (temp.length() - 1), temp.length(), 0);
+        if (isSpannable) {
+            spannable.setSpan(new RelativeSizeSpan(.5f), (temp.length() - 1), temp.length(), 0);
+        }
         return spannable;
     }
 
@@ -421,16 +421,17 @@ public class MainActivity extends AppCompatActivity {
         String tempTemp = currentTemperature.getText().toString();
         String tempHumid = currentHumidity.getText().toString();
         String tempLight = currentLighting.getText().toString();
-        String tempIR = currIR.getText().toString();
-        String tempUV = currUV.getText().toString();
+        //String tempIR = currIR.getText().toString();
+        //String tempUV = currUV.getText().toString();
         String tempSetTemp = setTemperatureDisplay.getText().toString();
         String tempSetHumid = setHumidityDisplay.getText().toString();
         String tempSetLight = setLightingDisplay.getText().toString();
+
         int currTemperature = Integer.parseInt(tempTemp.substring(0, (tempTemp.length() - 1)));
         int currHumid = Integer.parseInt(tempHumid.substring(0, (tempHumid.length() - 1)));
         int currLight = Integer.parseInt(tempLight.substring(0, (tempLight.length() - 1)));
-        int currentIR = Integer.parseInt(tempIR);
-        int currentUV = Integer.parseInt(tempUV);
+        //int currentIR = Integer.parseInt(tempIR);
+        //int currentUV = Integer.parseInt(tempUV);
         int setTemp = Integer.parseInt(tempSetTemp);
         int setHumidity = Integer.parseInt(tempSetHumid);
         int setLighting = Integer.parseInt(tempSetLight);
@@ -438,24 +439,21 @@ public class MainActivity extends AppCompatActivity {
         switch (valueType) {
             case TEMPERATURE:
                 setTemp = isAddition ? setTemp + 1: setTemp - 1;
-                setTemperatureValue = setTemp;
-                setTemperatureDisplay.setText(String.valueOf(setTemperatureValue));
+                setTemperatureDisplay.setText(String.valueOf(setTemp));
                 break;
             case HUMIDITY:
-                setHumidity = isAddition ? setHumidity + 1: setHumidity - 1;
-                setHumidityValue = setHumidity;
-                setHumidityDisplay.setText(String.valueOf(setHumidityValue));
+                setHumidity = isAddition ? setHumidity + 10: setHumidity - 10;
+                setHumidityDisplay.setText(String.valueOf(setHumidity));
                 break;
             case LIGHTING:
-                setLighting = isAddition ? setLighting + 1: setLighting - 1;
-                setLightingValue = setLighting;
-                setLightingDisplay.setText(String.valueOf(setLightingValue));
+                setLighting = isAddition ? setLighting + 10: setLighting - 10;
+                setLightingDisplay.setText(String.valueOf(setLighting));
                 break;
             default:
                 break;
         }
 
-        String output = currTemperature + "," + currHumid + "," + currLight + "," + currentIR + "," + currentUV + "," + setTemp + "," + setHumidity + "," + setLighting;
+        String output = currTemperature + "," + currHumid + "," + currLight + "," + setTemp + "," + setHumidity + "," + setLighting; // If need IR or UV add back here
         BluetoothGattService btService = btGatt.getService(HM10_SERVICE);
 
         if (btService != null) {
@@ -473,6 +471,28 @@ public class MainActivity extends AppCompatActivity {
         else {
             Log.w(SENSOR_TAG, "Cannot get bt service");
         }
+    }
 
+    private int getSetValue(int valueType) {
+        int value = 0;
+
+        switch (valueType) {
+            case TEMPERATURE:
+                String tempSetTemp = setTemperatureDisplay.getText().toString(); // TODO: FIX THIS SHIT
+                value = Integer.parseInt(tempSetTemp);
+                break;
+            case HUMIDITY:
+                String tempSetHumid = setHumidityDisplay.getText().toString();
+                value = Integer.parseInt(tempSetHumid);
+                break;
+            case LIGHTING:
+                String tempSetLight = setLightingDisplay.getText().toString();
+                value = Integer.parseInt(tempSetLight);
+                break;
+            default:
+                Log.w(SENSOR_TAG, "Error initializing set values");
+        }
+
+        return value;
     }
 }

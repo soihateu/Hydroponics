@@ -1,3 +1,10 @@
+// Bluetooth HM10 RX -> TX (pin 46 on Mega2560)
+// Bluetooth HM10 TX -> RX (pin 48 on Mega2560)
+// Remember to use pins specifically meant for AltSoftSerial
+// Format of characteristic: ("temperature, humidity, lighting (visible light), IR, UV, tempThreshold, HumidThreshold, LightThreshold")
+// REMEMBER TO USE NO LINE ENDING ****
+// Characteristic cannot hold more than 64 characters, will overflow and output incorrect values. (IE. 20,100,100,30,100,100,100)
+
 // All includes for sensors
 #include <DHT.h>
 #include <Wire.h>
@@ -219,9 +226,12 @@ int readHumid()
 int readVis()
 {
   Serial.println("Reading visible light...");
-  
+
   float visibleLight = SI1145.ReadVisible();
   Serial.println("Visible Light: " + String(visibleLight));
+  
+  // Divide by 2500(Maximum light value that can be changed) to get %
+  visibleLight = (visibleLight / 2500) * 100;
   
   return (int)visibleLight;
 }

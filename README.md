@@ -4,6 +4,8 @@
 
 NOTE: Bluetooth BLE is not supported on android studio emulators. Enable USB debugging and run on phone.
 
+- Characteristic cannot hold more than 64 characters, will overflow and output incorrect values. (IE. 20,100,100,30,100,100,100)
+
 ### Arduino Setup
 
 - Uses AltSoftSerial library; make sure to use the correct ports specifically for AltSoftSerial.
