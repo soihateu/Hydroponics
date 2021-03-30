@@ -365,6 +365,11 @@ public class MainActivity extends AppCompatActivity {
         String[] tokenSettings = values.split(",");
 
         for (int i = 0; i < tokenSettings.length; i++) {
+            // Remove end marker character '\n' if necessary
+            if (tokenSettings[i].charAt(tokenSettings[i].length()-1) == '\n') {
+                tokenSettings[i] = tokenSettings[i].substring(0, tokenSettings[i].length()-1);
+            }
+
             String temp = "";
             System.out.println("Setting is: " + tokenSettings[i]);
             switch (i) {
@@ -418,42 +423,27 @@ public class MainActivity extends AppCompatActivity {
 
     // Updates the setValues when any of the + or - buttons are pressed
     private void updateSetValues(int valueType, boolean isAddition) {
-        String tempTemp = currentTemperature.getText().toString();
-        String tempHumid = currentHumidity.getText().toString();
-        String tempLight = currentLighting.getText().toString();
-        //String tempIR = currIR.getText().toString();
-        //String tempUV = currUV.getText().toString();
-        String tempSetTemp = setTemperatureDisplay.getText().toString();
-        String tempSetHumid = setHumidityDisplay.getText().toString();
-        String tempSetLight = setLightingDisplay.getText().toString();
+        int setTemp = 0;
+        int setHumidity = 0;
+        int setLighting = 0;
 
-        int currTemperature = Integer.parseInt(tempTemp.substring(0, (tempTemp.length() - 1)));
-        int currHumid = Integer.parseInt(tempHumid.substring(0, (tempHumid.length() - 1)));
-        int currLight = Integer.parseInt(tempLight.substring(0, (tempLight.length() - 1)));
-        //int currentIR = Integer.parseInt(tempIR);
-        //int currentUV = Integer.parseInt(tempUV);
-        int setTemp = Integer.parseInt(tempSetTemp);
-        int setHumidity = Integer.parseInt(tempSetHumid);
-        int setLighting = Integer.parseInt(tempSetLight);
-
+        // Send -1,0,1 to HM10 depending on if we're decrementing, incrementing, or not changes
+        // HM10 will handle updating the set values (addition/subtraction)
         switch (valueType) {
             case TEMPERATURE:
-                setTemp = isAddition ? setTemp + 1: setTemp - 1;
-                setTemperatureDisplay.setText(String.valueOf(setTemp));
+                setTemp = isAddition ? 1 : -1;
                 break;
             case HUMIDITY:
-                setHumidity = isAddition ? setHumidity + 10: setHumidity - 10;
-                setHumidityDisplay.setText(String.valueOf(setHumidity));
+                setHumidity = isAddition ? 1 : -1;
                 break;
             case LIGHTING:
-                setLighting = isAddition ? setLighting + 10: setLighting - 10;
-                setLightingDisplay.setText(String.valueOf(setLighting));
+                setLighting = isAddition ? 1 : -1;
                 break;
             default:
                 break;
         }
 
-        String output = currTemperature + "," + currHumid + "," + currLight + "," + setTemp + "," + setHumidity + "," + setLighting; // If need IR or UV add back here
+        String output = setTemp + "," + setHumidity + "," + setLighting + "\n"; // If need IR or UV add back here
         BluetoothGattService btService = btGatt.getService(HM10_SERVICE);
 
         if (btService != null) {
@@ -478,7 +468,7 @@ public class MainActivity extends AppCompatActivity {
 
         switch (valueType) {
             case TEMPERATURE:
-                String tempSetTemp = setTemperatureDisplay.getText().toString(); // TODO: FIX THIS SHIT
+                String tempSetTemp = setTemperatureDisplay.getText().toString();
                 value = Integer.parseInt(tempSetTemp);
                 break;
             case HUMIDITY:
