@@ -21,3 +21,12 @@ NOTE: Bluetooth BLE is not supported on android studio emulators. Enable USB deb
 
   ![Arduino HM-10 BLE Module Connection Circuit Diagram](https://circuitdigest.com/sites/default/files/circuitdiagram_mic/Circuit-Diagram-for-HM-10-BLE-Module-with-Arduino-to-Control-an-LED-using-Android-App_0.png)
 
+### Application Images
+
+##### Disconnected State
+
+![Application Disconnected](img/Hydroponic Disconnect.png)
+
+##### Connected State
+
+![Application Connected](img/Hydroponic Connected.png)
