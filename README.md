@@ -25,8 +25,8 @@ NOTE: Bluetooth BLE is not supported on android studio emulators. Enable USB deb
 
 ##### Disconnected State
 
-![Application Disconnected](img/Hydroponic Disconnect.png)
+![Application Disconnected](https://github.com/soihateu/Hydroponics/blob/main/img/Hydroponic%20Connected.png)
 
 ##### Connected State
 
-![Application Connected](img/Hydroponic Connected.png)
+![Application Connected](https://github.com/soihateu/Hydroponics/blob/main/img/Hydroponic%20Disconnect.png)
